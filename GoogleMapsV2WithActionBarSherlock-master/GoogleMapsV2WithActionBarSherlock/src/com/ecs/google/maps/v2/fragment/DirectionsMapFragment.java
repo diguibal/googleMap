@@ -6,15 +6,18 @@ import java.util.List;
 import java.util.Random;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -52,6 +55,7 @@ public class DirectionsMapFragment extends SherlockMapFragment {
 	private static final HttpTransport HTTP_TRANSPORT = AndroidHttp.newCompatibleTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 	
+	private Location location;
 	private Handler handler = new Handler();
 	private Random random = new Random();
 	private Runnable runner = new Runnable() {
@@ -64,12 +68,13 @@ public class DirectionsMapFragment extends SherlockMapFragment {
 	private GoogleMap googleMap;
 	private List<Marker> markers = new ArrayList<Marker>();
     
-    public static DirectionsMapFragment newInstance(int position,String title) {
+    public static DirectionsMapFragment newInstance(int position,String title, Location location) {
     	DirectionsMapFragment fragment = new DirectionsMapFragment();
         Bundle bundle = new Bundle();
         bundle.putInt("position", position);
         bundle.putString("title", title);
         fragment.setArguments(bundle);
+        fragment.location = location;
         return fragment;
     }
     
@@ -77,11 +82,11 @@ public class DirectionsMapFragment extends SherlockMapFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		handler.postDelayed(runner, random.nextInt(2000));
-		
 		View view = super.onCreateView(inflater, container, savedInstanceState);
 		googleMap = getMap();
+		hardCodeMarkers();
 		googleMap.setMyLocationEnabled(true);
-		
+		googleMap.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()) , 14.0f) );
 		ViewUtils.initializeMargin(getActivity(), view);
 
 		return view;
@@ -141,7 +146,6 @@ public class DirectionsMapFragment extends SherlockMapFragment {
 			  GoogleMapUtis.toggleStyle(googleMap);
 			  
 		  }
-		  
 	      return true;
 	}	
 	
@@ -478,6 +482,19 @@ public class DirectionsMapFragment extends SherlockMapFragment {
 			for (Marker marker : this.markers) {
 				marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
 			}
-		}		
+		}
+
+		private void hardCodeMarkers(){
+			addMarker("Guangyao",40.438289,-79.959659);
+			addMarker("Srinath", 40.426906, -79.919030);
+		}
 	  
+		private void addMarker(String name, double lat, double lon){
+			   this.googleMap.addMarker(new MarkerOptions()
+			    .position(new LatLng(lat, lon))
+			    .title(name)
+			    .snippet(name + " is Here")
+			    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ypin)));
+		}
+
 }

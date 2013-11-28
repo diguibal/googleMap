@@ -1,10 +1,17 @@
 package com.ecs.google.maps.v2.fragment;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Criteria;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
@@ -40,6 +47,7 @@ public class DirectionsInputActivity extends FragmentActivity {
 	private AutoCompleteTextView from;
 	private AutoCompleteTextView to;
 
+	private LocationManager locationManager;
 	@Override
 	protected void onCreate(Bundle arg0) {
 		super.onCreate(arg0);
@@ -49,13 +57,13 @@ public class DirectionsInputActivity extends FragmentActivity {
 		//to = (EditText) findViewById(R.id.to);
 		Button btnLoadDirections = (Button) findViewById(R.id.load_directions);
 		
-		
 		btnLoadDirections.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 				Intent data = new Intent();
-				data.putExtra("from", from.getText().toString());
+				String s = getCurrentPosition();
+				data.putExtra("from", s);
 				data.putExtra("to", to.getText().toString());
 				DirectionsInputActivity.this.setResult(RESULT_CODE, data);
 				DirectionsInputActivity.this.finish();
@@ -67,7 +75,7 @@ public class DirectionsInputActivity extends FragmentActivity {
 		to = (AutoCompleteTextView) findViewById(R.id.to);
 
 		from.setText("Fisherman's Wharf, San Francisco, CA, United States");
-		to.setText("The Moscone Center, Howard Street, San Francisco, CA, United States");
+		to.setText("2123, Shady Ave, Pittsburgh, PA, United States");
 
 		from.setAdapter(new PlacesAutoCompleteAdapter(this, android.R.layout.simple_dropdown_item_1line));
 		to.setAdapter(new PlacesAutoCompleteAdapter(this, android.R.layout.simple_dropdown_item_1line));
@@ -170,5 +178,48 @@ public class DirectionsInputActivity extends FragmentActivity {
 		  @Key("id")
 		  public String id;
 		  
-	  }	  
+	  }
+	  
+	  private String getCurrentPosition(){
+		//get the location Manger
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		//define the criteria how to select the location provider
+		Criteria criteria = new Criteria();
+		String provider = locationManager.getBestProvider(criteria, false);
+		Location location = locationManager.getLastKnownLocation(provider);
+		// Initialize the location fields
+		provider = locationManager.getBestProvider(criteria, false);
+		if (location != null) {
+			System.out.println("Provider " + provider
+					+ " has been selected.");
+			return onLocationChanged(location);
+		}
+		return null;
+	  }
+	  
+	  private String onLocationChanged(Location location) {
+			double lat = location.getLatitude();
+			double lng = location.getLongitude();
+
+			Geocoder geocoder;
+			List<Address> addresses = null;
+			String address = null;
+			String city = null;
+			String country = null;
+			geocoder = new Geocoder(this, Locale.getDefault());
+			
+			try {
+				addresses = geocoder.getFromLocation(lat, lng, 1);
+				address = addresses.get(0).getAddressLine(0);
+				city = addresses.get(0).getAddressLine(1);
+				country = addresses.get(0).getAddressLine(2);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//do sth.
+			if(address == null)
+				return null;
+			return address + " ," + city + " ," + country;
+		}
 }

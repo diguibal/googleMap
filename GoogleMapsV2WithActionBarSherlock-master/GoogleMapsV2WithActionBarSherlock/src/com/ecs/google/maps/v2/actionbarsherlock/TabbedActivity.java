@@ -1,5 +1,9 @@
 package com.ecs.google.maps.v2.actionbarsherlock;
 
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -12,7 +16,6 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.astuetz.viewpager.extensions.PagerSlidingTabStrip;
 import com.ecs.google.maps.v2.fragment.AnimatingMarkersFragment;
 import com.ecs.google.maps.v2.fragment.DirectionsMapFragment;
-import com.ecs.google.maps.v2.fragment.PlayingWithMarkersFragment;
 import com.ecs.google.maps.v2.fragment.SimpleAnimatingMarkersFragment;
 import com.ecs.google.maps.v2.fragment.SimpleCardFragment;
 import com.ecs.google.maps.v2.fragment.SupportMapFragmentWithMenu;
@@ -29,7 +32,7 @@ public class TabbedActivity extends SherlockFragmentActivity {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.activity_tabs);
 
-		tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+		//tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
 		pager = (ViewPager) findViewById(R.id.pager);
 		adapter = new MyPagerAdapter(getSupportFragmentManager());
 		
@@ -39,7 +42,7 @@ public class TabbedActivity extends SherlockFragmentActivity {
 				.getDisplayMetrics());
 		pager.setPageMargin(pageMargin);
 
-		tabs.setViewPager(pager);
+		//tabs.setViewPager(pager);
 
 	}
 
@@ -49,12 +52,7 @@ public class TabbedActivity extends SherlockFragmentActivity {
 
 	public class MyPagerAdapter extends FragmentPagerAdapter {
 
-		private final String[] TITLES = { 	"Simple Map", 
-											"Playing With Markers", 
-											"Simple Animation",
-											"Animation",
-											"Directions API", 
-											"Maps Utils Library"};
+		private final String[] TITLES = { "Directions API"};
 
 		public MyPagerAdapter(FragmentManager fm) {
 			super(fm);
@@ -72,7 +70,7 @@ public class TabbedActivity extends SherlockFragmentActivity {
 
 		@Override
 		public Fragment getItem(int position) {
-			if (position==0) {
+			/*if (position==0) {
 				
 				Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(makeFragmentName(R.id.pager, position));
 				System.out.println("*********** fragmentByTag = " + fragmentByTag);
@@ -104,7 +102,19 @@ public class TabbedActivity extends SherlockFragmentActivity {
 				
 			} else {
 				return SimpleCardFragment.newInstance(position);
-			}
+			}*/
+			Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(makeFragmentName(R.id.pager, position));
+			
+			System.out.println("*********** fragmentByTag = " + fragmentByTag);
+			
+			//get the location Manger
+			LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			//define the criteria how to select the location provider
+			Criteria criteria = new Criteria();
+			String provider = locationManager.getBestProvider(criteria, false);
+			Location location = locationManager.getLastKnownLocation(provider);
+			return DirectionsMapFragment.newInstance(position,"Directions",location);
+			
 		}
 
 	}
